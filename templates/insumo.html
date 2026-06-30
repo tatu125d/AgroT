@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+<header class="top-bar" style="margin-bottom: 20px;">
+    <h1 style="color: #1e293b; margin: 0;">Almoxarifado & Insumos</h1>
+</header>
+
+<div style="display: flex; gap: 25px; flex-wrap: wrap; align-items: flex-start;">
+    
+    <div style="flex: 1; min-width: 320px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+        <h3 style="margin: 0 0 20px 0; color: #1e293b; font-size: 1.1rem; font-weight: 600;">Registrar Compra / Entrada</h3>
+        
+        <form action="{{ url_for('insumo') }}" method="POST" style="display: flex; flex-direction: column; gap: 15px;">
+            <div>
+                <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; color: #475569;">Categoria do Insumo:</label>
+                <select name="categoria" id="selectCategoria" required onchange="atualizarUnidade()" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; background-color: #f8fafc;">
+                    <option value="sementes">🌱 Sementes</option>
+                    <option value="fertilizante">🪨 Fertilizantes / Corretivos</option>
+                    <option value="defensivo">🧪 Defensivos Agrícolas</option>
+                </select>
+            </div>
+
+            <div>
+                <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; color: #475569;">Nome / Especificação técnica:</label>
+                <input type="text" name="nome_insumo" placeholder="Ex: Soja BRS, NPK 04-14-08, Glifosato..." required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;">
+            </div>
+
+            <div>
+                <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; color: #475569;" id="labelQuantidade">Quantidade Adicionada (em kg):</label>
+                <input type="number" name="quantidade" step="0.01" min="0.01" placeholder="Ex: 1500" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;">
+            </div>
+
+            <button type="submit" style="background: #10b981; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.95rem; margin-top: 5px;">
+                📦 Dar Entrada no Almoxarifado
+            </button>
+        </form>
+    </div>
+
+    <div style="flex: 1.8; min-width: 350px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+        <h3 style="margin: 0 0 20px 0; color: #1e293b; font-size: 1.1rem; font-weight: 600;">Estoque Físico Disponível</h3>
+        
+        {% if estoque %}
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            {% for item in estoque %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #f8fafc; border-left: 4px solid 
+                {% if item.categoria == 'Semente' %}#10b981{% elif item.categoria == 'Fertilizante' %}#3b82f6{% else %}#ef4444{% endif %}; border-radius: 4px;">
+                
+                <div>
+                    <span style="font-size: 0.75rem; font-weight: bold; text-transform: uppercase; padding: 3px 8px; border-radius: 20px;
+                        {% if item.categoria == 'Semente' %} background: #e6f4ea; color: #137333;
+                        {% elif item.categoria == 'Fertilizante' %} background: #e8f0fe; color: #1a73e8;
+                        {% else %} background: #fce8e6; color: #c5221f; {% endif %}">
+                        {{ item.categoria }}
+                    </span>
+                    <strong style="color: #1e293b; display: block; font-size: 1.05rem; margin-top: 6px;">{{ item.nome_insumo }}</strong>
+                </div>
+                
+                <span style="background: #f1f5f9; color: #334155; padding: 8px 16px; border-radius: 8px; font-size: 1rem; font-weight: bold; border: 1px solid #e2e8f0;">
+                    {{ "%.2f"|format(item.quantidade) }} {{ item.unidade }}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="color: #64748b; font-size: 0.9rem; margin: 0;">Nenhum produto cadastrado no galpão de insumos.</p>
+        {% endif %}
+    </div>
+
+</div>
+
+<script>
+function atualizarUnidade() {
+    const categoria = document.getElementById('selectCategoria').value;
+    const label = document.getElementById('labelQuantidade');
+    
+    if (categoria === 'Defensivo') {
+        label.innerText = 'Quantidade Adicionada (em Litros):';
+    } else {
+        label.innerText = 'Quantidade Adicionada (em kg):';
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,36 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>AgroTech | Cadastro</title>
+</head>
+<body class="auth-body"> <div class="login-container">
+        <header>
+            <h1>AgroTech Precision</h1>
+            <p>Crie sua nova conta</p>
+        </header>
+        
+        <form action="/cadastro" method="POST">
+            <div class="input-group">
+                <label>Nome Completo</label>
+                <input type="text" name="nome" placeholder="Digite seu nome" required>
+            </div>
+            <div class="input-group">
+                <label>E-mail</label>
+                <input type="email" name="email" placeholder="seu@email.com" required>
+            </div>
+            <div class="input-group">
+                <label>Senha</label>
+                <input type="password" name="senha" placeholder="******" required>
+            </div>
+            <button type="submit" class="btn-login">Finalizar Cadastro</button>
+        </form>
+        
+        <footer>
+            <p>Já tem conta? <a href="/login">Faça login aqui</a></p>
+        </footer>
+    </div>
+</body>
+</html>

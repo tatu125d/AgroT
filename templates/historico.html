@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 1100px; margin: 0 auto; padding: 20px;">
+    
+    <div style="margin-bottom: 25px;">
+        <span style="font-size: 0.85rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #10b981;">📅 Calendário Agrícola</span>
+        <h2 style="color: #1e293b; margin: 5px 0 0 0;">Cronograma e Planejamento Mensal</h2>
+        <p style="color: #64748b; margin: 5px 0 0 0; font-size: 0.95rem;">Navegue pelos meses para visualizar as datas exatas de pulverização, adubação e colheita estimadas.</p>
+    </div>
+
+    <div style="display: flex; gap: 20px; background: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; flex-wrap: wrap; font-size: 0.9rem;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 14px; height: 14px; background: #ef4444; border-radius: 3px;"></div>
+            <span style="color: #334155; font-weight: 500;">🛡️ Aplicação de Defensivos</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 14px; height: 14px; background: #3b82f6; border-radius: 3px;"></div>
+            <span style="color: #334155; font-weight: 500;">🌱 Adubação / Fertilizantes</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 14px; height: 14px; background: #10b981; border-radius: 3px;"></div>
+            <span style="color: #334155; font-weight: 500;">🚜 Ponto de Colheita Estimado</span>
+        </div>
+    </div>
+
+    <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+        <div id="calendario-agro"></div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendario-agro');
+    
+    // Injeta os dados vindos do Flask com segurança usando a sintaxe JS correta
+    const meusEventos = {{ eventos_json | safe }};
+    
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'pt-br',
+        buttonText: {
+            today: 'Hoje',
+            month: 'Mês',
+            week: 'Semana',
+            day: 'Dia'
+        },
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth'
+        },
+        height: 650,
+        events: meusEventos,
+        eventClick: function(info) {
+            alert("Manejo Operacional:\n" + info.event.title);
+        }
+    });
+    
+    calendar.render();
+});
+</script>
+
+<style>
+    .fc { font-family: inherit; }
+    .fc-col-header-cell { background: #f8fafc; padding: 8px 0 !important; color: #475569; }
+    .fc-daygrid-event { font-size: 0.85rem !important; padding: 3px 5px !important; border-radius: 4px !important; margin-top: 2px !important; font-weight: bold; cursor: pointer; }
+    .fc-button-primary { background-color: #1e293b !important; border-color: #1e293b !important; color: white !important; }
+    .fc-button-primary:hover { background-color: #334155 !important; border-color: #334155 !important; }
+    .fc-button-active { background-color: #10b981 !important; border-color: #10b981 !important; }
+    /* Garante visibilidade das bordas padrão do calendário */
+    .fc td, .fc th { border: 1px solid #e2e8f0 !important; }
+</style>
+{% endblock %}

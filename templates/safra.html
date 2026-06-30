@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto; padding: 20px;">
+    
+    <h2 style="color: #1e293b; margin-bottom: 25px;">Gerenciamento de Safra</h2>
+
+    <div style="background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
+        <form method="GET" action="{{ url_for('safra') }}" style="display: flex; gap: 10px;">
+            <input type="text" name="busca_talhao" value="{{ busca_talhao }}" placeholder="Digite o nome do campo para buscar..." 
+                   style="flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem;">
+            <button type="submit" style="background: #475569; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                🔍 Filtrar Campo
+            </button>
+            {% if busca_talhao %}
+                <a href="{{ url_for('safra') }}" style="background: #cbd5e1; color: #334155; padding: 10px 15px; border-radius: 6px; text-decoration: none; font-size: 0.9rem; display: flex; align-items: center;">Limpar</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 35px;">
+        <h4 style="margin: 0 0 20px 0; color: #334155; font-size: 1.1rem;">Iniciar Novo Plantio</h4>
+        
+        <form method="POST" action="{{ url_for('safra') }}" style="display: flex; flex-direction: column; gap: 15px;">
+            <div>
+                <label style="display: block; margin-bottom: 6px; color: #475569; font-weight: 600; font-size: 0.9rem;">Selecione o Campo Disponível (Livre):</label>
+                <select name="talhao_id" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem; background-color: #fff;">
+                    {% if talhoes %}
+                        <option value="" disabled selected>-- Escolha um Campo Livre ({{ talhoes|length }} encontrados) --</option>
+                        {% for t in talhoes %}
+                            <option value="{{ t.id }}">{{ t.nome }} ({{ t.area_hectares }} ha)</option>
+                        {% endfor %}
+                    {% else %}
+                        <option value="" disabled selected>Nenhum campo livre ou correspondente encontrado.</option>
+                    {% endif %}
+                </select>
+                <small style="color: #64748b; margin-top: 4px; display: block;">* Campos com plantios em andamento não aparecem aqui até serem finalizados no painel.</small>
+            </div>
+
+            <div>
+                <label style="display: block; margin-bottom: 6px; color: #475569; font-weight: 600; font-size: 0.9rem;">Selecione a Semente do Estoque (Insumos):</label>
+                <select name="insumo_id" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem; background-color: #fff;">
+                    {% if sementes %}
+                        <option value="" disabled selected>-- Escolha a Semente Disponível --</option>
+                        {% for s in sementes %}
+                            <option value="{{ s.id }}">{{ s.nome_insumo }} (Saldo: {{ "%.1f"|format(s.quantidade) }} kg)</option>
+                        {% endfor %}
+                    {% else %}
+                        <option value="" disabled selected>Nenhuma semente com saldo disponível no Almoxarifado.</option>
+                    {% endif %}
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                    <label style="display: block; margin-bottom: 6px; color: #475569; font-weight: 600; font-size: 0.9rem;">Data de Plantio:</label>
+                    <input type="date" name="data_plantio" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem;">
+                </div>
+
+                <div style="flex: 1; min-width: 200px;">
+                    <label style="display: block; margin-bottom: 6px; color: #475569; font-weight: 600; font-size: 0.9rem;">Ciclo Estimado (Dias):</label>
+                    <input type="number" name="ciclo_dias" placeholder="Ex: 120" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem;">
+                </div>
+            </div>
+
+            <button type="submit" style="background: #10b981; color: white; padding: 12px; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 15px; transition: background 0.2s;">
+                🌾 Salvar e Descontar Insumos
+            </button>
+        </form>
+    </div>
+
+    <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+        <h4 style="margin: 0 0 20px 0; color: #334155; font-size: 1.1rem;">Acompanhamento de Lavouras Ativas</h4>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #e2e8f0; color: #475569;">
+                        <th style="padding: 12px 8px;">Campo (Talhão)</th>
+                        <th style="padding: 12px 8px;">Cultura</th>
+                        <th style="padding: 12px 8px;">Data de Plantio</th>
+                        <th style="padding: 12px 8px;">Ciclo Alvo</th>
+                        <th style="padding: 12px 8px;">Status Atual</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for safra in safras %}
+                    <tr style="border-bottom: 1px solid #f1f5f9; color: #334155;">
+                        <td style="padding: 12px 8px; font-weight: bold;">{{ safra.talhao_nome }}</td>
+                        <td style="padding: 12px 8px;">{{ safra.cultura }}</td>
+                        <td style="padding: 12px 8px;">{{ safra.data_plantio }}</td>
+                        <td style="padding: 12px 8px;">{{ safra.ciclo_dias }} dias</td>
+                        <td style="padding: 12px 8px;">
+                            <span style="background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; font-weight: 600;">
+                                {{ safra.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="padding: 20px; text-align: center; color: #64748b;">Nenhuma lavoura em andamento registrada.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

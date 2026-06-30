@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block content %}
+<header class="top-bar" style="margin-bottom: 20px;">
+    <h1 style="color: #1e293b; margin: 0;">Olá, {{ nome }}</h1>
+</header>
+
+{% if commodities %}
+<div style="background: #1e293b; color: #f8fafc; padding: 12px 20px; border-radius: 8px; margin-bottom: 25px; display: flex; gap: 25px; align-items: center; overflow-x: auto; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+    <span style="font-weight: bold; color: #10b981; text-transform: uppercase; font-size: 0.85rem; border-right: 2px solid #475569; padding-right: 15px;">Mercado Global (USD / Bushel):</span>
+    {% for c in commodities %}
+    <div style="display: flex; gap: 6px; font-size: 0.9rem; white-space: nowrap;">
+        <span style="color: #94a3b8;">{{ c.nome }}:</span>
+        <span style="font-weight: bold; color: #38bdf8;">$ {{ "%.2f"|format(c.preco) }} / bsh</span>
+    </div>
+    {% endfor %}
+    <span style="font-size: 0.8rem; color: #a1a1aa; font-style: italic; margin-left: auto; white-space: nowrap;">* Nota: 1 Bushel equivale a aprox. 60 kg (1 saca)</span>
+</div>
+{% endif %}
+
+<div style="background: linear-gradient(135deg, #111827 0%, #1f2937 100%); color: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 25px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <span style="font-size: 0.85rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #10b981;">📡 Clima por Geolocalização Operacional</span>
+            <h3 id="txt-localizacao" style="margin: 5px 0 0 0; font-size: 1.4rem; font-weight: 700;">Buscando coordenadas...</h3>
+            <p id="txt-descricao" style="margin: 2px 0 0 0; font-size: 1rem; opacity: 0.8;">Aguardando permissão de localização do dispositivo...</p>
+        </div>
+        <div style="text-align: right; display: flex; align-items: center; gap: 5px;">
+            <span id="txt-temp" style="font-size: 3.2rem; font-weight: 800; line-height: 1;">--</span>
+            <span style="font-size: 1.8rem; font-weight: 500; align-self: flex-start; margin-top: 5px;">°C</span>
+        </div>
+    </div>
+    
+    <div style="display: flex; gap: 20px; margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 120px;">
+            <span style="display: block; font-size: 0.8rem; opacity: 0.6;">💧 Umid. Relativa</span>
+            <strong id="txt-umidade" style="font-size: 1.1rem;">-- %</strong>
+        </div>
+        <div style="flex: 1; min-width: 120px;">
+            <span style="display: block; font-size: 0.8rem; opacity: 0.6;">💨 Vento na Região</span>
+            <strong id="txt-vento" style="font-size: 1.1rem;">-- km/h</strong>
+        </div>
+        <div style="flex: 1; min-width: 120px;">
+            <span style="display: block; font-size: 0.8rem; opacity: 0.6;">🧭 Coordenadas</span>
+            <strong id="txt-coordenadas" style="font-size: 0.9rem; color: #9ca3af;">⏱️ Obtendo...</strong>
+        </div>
+    </div>
+</div>
+
+<div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 25px;">
+    <h3 style="margin: 0 0 12px 0; color: #1e293b; font-size: 1.1rem; font-weight: 600;">Uso da Área da Propriedade</h3>
+    <div style="display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem;">
+        <span style="color: #059669;">Cultivado: {{ area_cultivada }} ha</span>
+        <span style="color: #64748b;">Disponível: {{ area_disponivel }} ha</span>
+    </div>
+    <div style="width: 100%; background: #e2e8f0; height: 16px; border-radius: 8px; overflow: hidden; display: flex;">
+        {% if area > 0 %}
+        <div style="width: {{ (area_cultivada / area) * 100 }}%; background: #10b981; height: 100%;"></div>
+        {% else %}
+        <div style="width: 0%; background: #10b981; height: 100%;"></div>
+        {% endif %}
+    </div>
+    <p style="margin: 8px 0 0 0; font-size: 0.8rem; color: #64748b;">Total Mapeado: {{ area }} hectares</p>
+</div>
+
+<div style="display: flex; gap: 25px; flex-wrap: wrap; align-items: flex-start;">
+    <div style="flex: 1.2; min-width: 320px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center;">
+        <h3 style="margin: 0 0 15px 0; color: #1e293b; font-size: 1.1rem; font-weight: 600; width: 100%; text-align: left;">Distribuição por Cultura</h3>
+        <div style="width: 100%; max-width: 280px;">
+            <canvas id="meuGraficoPizza"></canvas>
+        </div>
+    </div>
+
+    <div style="flex: 1; min-width: 320px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+        <h3 style="margin: 0 0 20px 0; color: #1e293b; font-size: 1.1rem; font-weight: 600;">Próximas Colheitas Estimadas</h3>
+        {% if proximas_colheitas %}
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            {% for colheita in proximas_colheitas %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #f8fafc; border-left: 4px solid {% if colheita.pronto %}#10b981{% else %}#f59e0b{% endif %}; border-radius: 4px;">
+                <div>
+                    <strong style="color: #1e293b; display: block; font-size: 0.95rem;">{{ colheita.cultura }}</strong>
+                    <span style="font-size: 0.8rem; color: #64748b;">Talhão: {{ colheita.talhao }}</span>
+                </div>
+                
+                {% if colheita.pronto %}
+                <form action="{{ url_for('dashboard') }}" method="POST" style="margin: 0;">
+                    <input type="hidden" name="liberar_safra_id" value="{{ colheita.id }}">
+                    <button type="submit" style="background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                        ✔️ Limpar Talhão
+                    </button>
+                </form>
+                {% else %}
+                <span style="background: #fef3c7; color: #d97706; padding: 5px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;">
+                    {{ colheita.restantes }} dias
+                </span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="color: #64748b; font-size: 0.9rem; margin: 0;">Nenhuma colheita estimada em andamento.</p>
+        {% endif %}
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('meuGraficoPizza').getContext('2d');
+    const labels = [{% for item in dados_pizza %}"{{ item[0] }}",{% endfor %}];
+    const valores = [{% for item in dados_pizza %}{{ item[1] }},{% endfor %}];
+    
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Hectares',
+                data: valores,
+                backgroundColor: ['#2E7D32', '#FBC02D', '#1976D2', '#D32F2F', '#757575'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // LÓGICA DE GEOLOCALIZAÇÃO DO CLIMA
+    document.addEventListener("DOMContentLoaded", function() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude.toFixed(4);
+                    const lon = position.coords.longitude.toFixed(4);
+                    
+                    document.getElementById('txt-localizacao').innerText = "Propriedade Localizada";
+                    document.getElementById('txt-coordenadas').innerText = `${lat}° , ${lon}°`;
+                    
+                    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=relativehumidity_2m`;
+                    
+                    fetch(url)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.current_weather) {
+                                const current = data.current_weather;
+                                const weatherCodes = {
+                                    0: "Céu Limpo ☀️", 1: "Predominantemente Limpo 🌤️", 2: "Parcialmente Nublado ⛅", 3: "Nublado ☁️",
+                                    45: "Nevoeiro 🌫️", 51: "Chuva Leve 🌧️", 53: "Chuva Moderada 🌧️", 55: "Chuva Forte 🌧️",
+                                    61: "Chuva Fraca 🌦️", 63: "Chuva Frequente 🌧️", 65: "Temporal de Chuva ⛈️",
+                                    80: "Pancadas de Chuva Leves 🌦️", 81: "Pancadas de Chuva 🌧️", 82: "Chuva Forte com Trovoada ⛈️", 95: "Tempestade Elétrica ⛈️"
+                                };
+                                
+                                const desc = weatherCodes[current.weathercode] || "Tempo Estável";
+                                const umidade = data.hourly && data.hourly.relativehumidity_2m ? data.hourly.relativehumidity_2m[0] : "60";
+                                
+                                document.getElementById('txt-temp').innerText = Math.round(current.temperature);
+                                document.getElementById('txt-descricao').innerText = desc;
+                                document.getElementById('txt-umidade').innerText = umidade + "%";
+                                document.getElementById('txt-vento').innerText = current.windspeed + " km/h";
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            document.getElementById('txt-descricao').innerText = "Erro ao puxar dados climáticos.";
+                        });
+                },
+                function(error) {
+                    // Padrão Agro Cerrado se recusar
+                    document.getElementById('txt-localizacao').innerText = "Região Padrão (Cerrado)";
+                    document.getElementById('txt-coordenadas').innerText = "-18.64° , -48.18°";
+                    fetch(`https://api.open-meteo.com/v1/forecast?latitude=-18.64&longitude=-48.18&current_weather=true&hourly=relativehumidity_2m`)
+                        .then(r => r.json())
+                        .then(d => {
+                            document.getElementById('txt-temp').innerText = Math.round(d.current_weather.temperature);
+                            document.getElementById('txt-descricao').innerText = "Tempo Estável (Localização Padrão)";
+                            document.getElementById('txt-umidade').innerText = "61%";
+                            document.getElementById('txt-vento').innerText = d.current_weather.windspeed + " km/h";
+                        });
+                }
+            );
+        }
+    });
+</script>
+{% endblock %}
