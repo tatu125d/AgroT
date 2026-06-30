@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="crud-container">
+    <div class="header-section">
+        <h1>🚜 Gerenciamento de Talhões</h1>
+        <p>Cadastre, edite ou busque seus talhões de produção.</p>
+    </div>
+
+    <div class="search-box">
+        <form method="GET" action="{{ url_for('talhao') }}" class="search-form">
+            <input type="text" name="busca" placeholder="Filtrar por nome..." value="{{ request.args.get('busca', '') }}">
+            <button type="submit" class="btn-search">🔍 Buscar</button>
+            {% if request.args.get('busca') %}
+                <a href="{{ url_for('talhao') }}" class="btn-clear">Limpar Filtro</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <hr>
+
+    <div class="form-card">
+        <h3>+ Adicionar Novo Talhão</h3>
+        <form method="POST">
+            <input type="hidden" name="acao" value="salvar">
+            <div class="input-group">
+                <input type="text" name="nome" placeholder="Ex: Talhão Norte" required>
+                <input type="number" name="largura" placeholder="Largura (m)" step="0.01" required>
+                <input type="number" name="comprimento" placeholder="Comprimento (m)" step="0.01" required>
+                <select name="tipo_solo">
+                    <option value="Arenoso">Arenoso</option>
+                    <option value="Argiloso">Argiloso</option>
+                    <option value="Siltoso">Siltoso</option>
+                    <option value="Misto">Misto</option>
+                </select>
+                <button type="submit" class="btn-add">Cadastrar</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="talhoes-list">
+        <h3>Lista de Talhões (Mostrando {{ talhoes|length }})</h3>
+        {% if not talhoes %}
+            <p>Nenhum talhão encontrado.</p>
+        {% endif %}
+
+        {% for t in talhoes %}
+        <div class="talhao-item-card">
+            <form method="POST" class="edit-form">
+                <input type="hidden" name="id" value="{{ t.id }}">
+                
+                <div class="field">
+                    <label>Nome:</label>
+                    <input type="text" name="nome" value="{{ t.nome }}">
+                </div>
+
+                <div class="field">
+                    <label>Largura (m):</label>
+                    <input type="number" name="largura" value="{{ t.largura_metros }}" step="0.01">
+                </div>
+
+                <div class="field">
+                    <label>Comprimento (m):</label>
+                    <input type="number" name="comprimento" value="{{ t.altura_metros }}" step="0.01">
+                </div>
+
+                <div class="field">
+                    <label>Solo:</label>
+                    <select name="tipo_solo">
+                        <option value="Arenoso" {{ 'selected' if t.tipo_solo == 'Arenoso' else '' }}>Arenoso</option>
+                        <option value="Argiloso" {{ 'selected' if t.tipo_solo == 'Argiloso' else '' }}>Argiloso</option>
+                        <option value="Siltoso" {{ 'selected' if t.tipo_solo == 'Siltoso' else '' }}>Siltoso</option>
+                        <option value="Misto" {{ 'selected' if t.tipo_solo == 'Misto' else '' }}>Misto</option>
+                    </select>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="submit" name="acao" value="editar" class="btn-save">💾 Salvar</button>
+                    <button type="submit" name="acao" value="deletar" class="btn-delete" onclick="return confirm('Tem certeza que deseja excluir o talhão {{ t.nome }}?')">🗑️</button>
+                </div>
+            </form>
+            <div class="area-badge">
+                <span>{{ t.area_hectares }} ha</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

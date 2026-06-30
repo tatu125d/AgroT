@@ -1,0 +1,36 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <title>AgroTech | Login</title>
+</head>
+<body class="auth-body">
+    <div class="login-container">
+        <header>
+            <h1>AgroTech Precision</h1>
+            <p>Acesse sua conta</p>
+        </header>
+        
+        <form action="/login" method="POST">
+            <div class="input-group">
+                <label>E-mail</label>
+                <input type="email" name="email" placeholder="mario@email.com" required>
+            </div>
+            
+            <div class="input-group">
+                <label>Senha</label>
+                <input type="password" name="senha" placeholder="******" required>
+            </div>
+            
+            <button type="submit" class="btn-login">Entrar no Painel</button>
+        </form>
+        
+        <footer>
+            <p>Não tem conta? <a href="/cadastro">Cadastre-se aqui</a></p>
+        </footer>
+    </div>
+</body>
+</html>
